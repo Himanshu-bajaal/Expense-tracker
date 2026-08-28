@@ -1,11 +1,22 @@
-import { useState, useEffect } from "react";
+import { useReducer, useEffect } from "react";
 import ExpenseForm from "./components/ExpenseForm"
 import ExpenseList from "./components/ExpenseList";
 import ExpenseTotal from "./components/ExpenseTotal";
 import './App.css'
 
+function expenseReducer(state,action) {
+  switch (action.type) {
+    case 'ADD_EXPENSE':
+      return [...state, action.payload]
+    case 'DELETE_EXPENSE':
+      return state.filter((expense) => expense.id !== action.payload)
+    default:
+      return state
+  }
+}
+
 function App() {
-  const [expenses, setExpenses] = useState(()=> {
+  const [expenses, dispatch] = useReducer(expenseReducer, [],()=> {
     const saved = localStorage.getItem('expenses')
     return saved? JSON.parse(saved) : [] 
   })
@@ -15,22 +26,28 @@ function App() {
   },[expenses])
 
   function handleAddExpense(newExpense) {
-    setExpenses([...expenses, newExpense])
+    dispatch({type: 'ADD_EXPENSE', payload: newExpense})
   }
 
   function handleDeleteExpense(id) {
-    setExpenses(expenses.filter((expense) => expense.id !== id))
+    dispatch({type: 'DELETE_EXPENSE', payload:id})
   }
 
-  return (
-    <div className="App">
-      <h1>Expense tracker</h1>
-      
-      <ExpenseForm onAddExpense={handleAddExpense} />
-      <ExpenseList expenses={expenses} onDeleteExpense={handleDeleteExpense} />
-      <ExpenseTotal expenses={expenses}/>
+ return (
+  <div className="app">
+    <h1>Expense Tracker</h1>
+    <div className="main-layout">
+      <div className="form-section">
+        <ExpenseForm onAddExpense={handleAddExpense} />
+      </div>
+      <div className="list-section">
+        <ExpenseList expenses={expenses} onDeleteExpense={handleDeleteExpense} />
+      </div>
     </div>
-  )
+    <ExpenseTotal expenses={expenses} />
+  </div>
+)
+
 }
 
 export default App;
